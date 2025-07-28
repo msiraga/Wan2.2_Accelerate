@@ -28,7 +28,7 @@ We are excited to introduce **Wan2.2**, a major upgrade to our foundational vide
 ## Video Demos
 
 <div align="center">
-  <video src="https://cloud.video.taobao.com/vod/NnCd0fC-1eckDUuVBMz43oD_U6mTsPpBwga3wdnAkXA.mp4" width="70%" poster=""> </video>
+  <video src="https://github.com/user-attachments/assets/b63bfa58-d5d7-4de6-a1a2-98970b06d9a7" width="70%" poster=""> </video>
 </div>
 
 ## 🔥 Latest News!!
@@ -39,7 +39,7 @@ We are excited to introduce **Wan2.2**, a major upgrade to our foundational vide
 
 
 ## Community Works
-If your research or project builds upon [**Wan2.1**](https://github.com/Wan-Video/Wan2.1) or Wan2.2, we welcome you to share it with us so we can highlight it for the broader community.
+If your research or project builds upon [**Wan2.1**](https://github.com/Wan-Video/Wan2.1) or [**Wan2.2**](https://github.com/Wan-Video/Wan2.2), we welcome you to share it with us so we can highlight it for the broader community.
 
 
 ## 📑 Todo List
