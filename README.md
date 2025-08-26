@@ -34,6 +34,7 @@ We are excited to introduce **Wan2.2**, a major upgrade to our foundational vide
 
 ## 🔥 Latest News!!
 
+* Aug 26, 2025: 🎵 We introduce **[Wan2.2-S2V-14B](https://humanaigc.github.io/wan-s2v-webpage)**, an audio-driven cinematic video generation model, including [inference code](#run-speech-to-video-generation), [model weights](#model-download), and [technical report]()! Now you can try it on [wan.video](https://wan.video/),  [ModelScope Gradio](https://www.modelscope.cn/studios/Wan-AI/Wan2.2-S2V) or [HuggingFace Gradio](https://huggingface.co/spaces/Wan-AI/Wan2.2-S2V)!
 * Jul 28, 2025: 👋 We have open a [HF space](https://huggingface.co/spaces/Wan-AI/Wan-2.2-5B) using the TI2V-5B model. Enjoy!
 * Jul 28, 2025: 👋 Wan2.2 has been integrated into ComfyUI ([CN](https://docs.comfy.org/zh-CN/tutorials/video/wan/wan2_2) | [EN](https://docs.comfy.org/tutorials/video/wan/wan2_2)). Enjoy!
 * Jul 28, 2025: 👋 Wan2.2's T2V, I2V and TI2V have been integrated into Diffusers ([T2V-A14B](https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B-Diffusers) | [I2V-A14B](https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B-Diffusers) | [TI2V-5B](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B-Diffusers)). Feel free to give it a try!
@@ -63,6 +64,11 @@ If your research or project builds upon [**Wan2.1**](https://github.com/Wan-Vide
     - [x] Checkpoints of the 5B model
     - [x] ComfyUI integration
     - [x] Diffusers integration
+- Wan2.2-S2V Speech-to-Video
+    - [x] Inference code of Wan2.2-S2V
+    - [x] Checkpoints of Wan2.2-S2V-14B
+    - [ ] ComfyUI integration
+    - [ ] Diffusers integration
 
 ## Run Wan2.2
 
@@ -88,6 +94,8 @@ pip install -r requirements.txt
 | T2V-A14B    | 🤗 [Huggingface](https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B)    🤖 [ModelScope](https://modelscope.cn/models/Wan-AI/Wan2.2-T2V-A14B)    | Text-to-Video MoE model, supports 480P & 720P |
 | I2V-A14B    | 🤗 [Huggingface](https://huggingface.co/Wan-AI/Wan2.2-I2V-A14B)    🤖 [ModelScope](https://modelscope.cn/models/Wan-AI/Wan2.2-I2V-A14B)    | Image-to-Video MoE model, supports 480P & 720P |
 | TI2V-5B     | 🤗 [Huggingface](https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B)     🤖 [ModelScope](https://modelscope.cn/models/Wan-AI/Wan2.2-TI2V-5B)     | High-compression VAE, T2V+I2V, supports 720P |
+| S2V-14B     | 🤗 [Huggingface](https://huggingface.co/Wan-AI/Wan2.2-S2V-14B)     🤖 [ModelScope](https://modelscope.cn/models/Wan-AI/Wan2.2-S2V-14B)     | Speech-to-Video model, supports 480P & 720P |
+
 
 
 > 💡Note: 
@@ -228,8 +236,38 @@ torchrun --nproc_per_node=8 generate.py --task ti2v-5B --size 1280*704 --ckpt_di
 
 > The process of prompt extension can be referenced [here](#2-using-prompt-extention).
 
+#### Run Speech-to-Video Generation
 
+This repository supports the `Wan2.2-S2V-14B` Speech-to-Video model and can simultaneously support video generation at 480P and 720P resolutions.
 
+- Single-GPU Speech-to-Video inference
+
+```sh
+python generate.py  --task s2v-14B --size 1024*704 --ckpt_dir ./Wan2.2-S2V-14B/ --offload_model True --convert_model_dtype --prompt "Summer beach vacation style, a white cat wearing sunglasses sits on a surfboard."  --image "examples/i2v_input.JPG" --audio "examples/talk.wav"
+# Without setting --num_clip, the generated video length will automatically adjust based on the input audio length
+```
+
+> 💡 This command can run on a GPU with at least 80GB VRAM.
+
+- Multi-GPU inference using FSDP + DeepSpeed Ulysses
+
+```sh
+torchrun --nproc_per_node=8 generate.py --task s2v-14B --size 1024*704 --ckpt_dir ./Wan2.2-S2V-14B/ --dit_fsdp --t5_fsdp --ulysses_size 8 --prompt "Summer beach vacation style, a white cat wearing sunglasses sits on a surfboard." --image "examples/i2v_input.JPG" --audio "examples/talk.wav"
+```
+
+- Pose + Audio driven generation
+
+```sh
+torchrun --nproc_per_node=8 generate.py --task s2v-14B --size 1024*704 --ckpt_dir ./Wan2.2-S2V-14B/ --dit_fsdp --t5_fsdp --ulysses_size 8 --prompt "a person is singing" --image "examples/pose.png" --audio "examples/sing.MP3" --pose_video "./examples/pose.mp4" 
+```
+
+> 💡For the Speech-to-Video task, the `size` parameter represents the area of the generated video, with the aspect ratio following that of the original input image.
+
+> 💡The model can generate videos from audio input combined with reference image and optional text prompt.
+
+> 💡The `--pose_video` parameter enables pose-driven generation, allowing the model to follow specific pose sequences while generating videos synchronized with audio input.
+
+> 💡The `--num_clip` parameter controls the number of video clips generated, useful for quick preview with shorter generation time.
 
 ## Computational Efficiency on Different GPUs
 
