@@ -223,3 +223,16 @@ def best_output_size(w, h, dw, dh, expected_area):
         return ow1, oh1
     else:
         return ow2, oh2
+
+
+def download_cosyvoice_repo(repo_path):
+    try:
+        import git
+    except ImportError:
+        raise ImportError('failed to import git, please run pip install GitPython')
+    repo = git.Repo.clone_from('https://github.com/FunAudioLLM/CosyVoice.git', repo_path, multi_options=['--recursive'], branch='main')
+
+
+def download_cosyvoice_model(model_name, model_path):
+    from modelscope import snapshot_download
+    snapshot_download('iic/{}'.format(model_name), local_dir=model_path)

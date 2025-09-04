@@ -42,6 +42,12 @@ EXAMPLE_PROMPT = {
             "examples/i2v_input.JPG",
         "audio":
             "examples/talk.wav",
+        "tts_prompt_audio":
+            "examples/zero_shot_prompt.wav",
+        "tts_prompt_text":
+            "希望你以后能够做的比我还好呦。",
+        "tts_text":
+            "收到好友从远方寄来的生日礼物，那份意外的惊喜与深深的祝福让我心中充满了甜蜜的快乐，笑容如花儿般绽放。"
     },
 }
 
@@ -56,8 +62,12 @@ def _validate_args(args):
         args.prompt = EXAMPLE_PROMPT[args.task]["prompt"]
     if args.image is None and "image" in EXAMPLE_PROMPT[args.task]:
         args.image = EXAMPLE_PROMPT[args.task]["image"]
-    if args.audio is None and "audio" in EXAMPLE_PROMPT[args.task]:
+    if args.audio is None and args.enable_tts is False and "audio" in EXAMPLE_PROMPT[args.task]:
         args.audio = EXAMPLE_PROMPT[args.task]["audio"]
+    if (args.tts_prompt_audio is None or args.tts_text is None) and args.enable_tts is True and "audio" in EXAMPLE_PROMPT[args.task]:
+        args.tts_prompt_audio = EXAMPLE_PROMPT[args.task]["tts_prompt_audio"]
+        args.tts_prompt_text = EXAMPLE_PROMPT[args.task]["tts_prompt_text"]
+        args.tts_text = EXAMPLE_PROMPT[args.task]["tts_text"]
 
     if args.task == "i2v-A14B":
         assert args.image is not None, "Please specify the image path for i2v."
@@ -217,6 +227,26 @@ def _parse_args():
         type=str,
         default=None,
         help="Path to the audio file, e.g. wav, mp3")
+    parser.add_argument(
+        "--enable_tts",
+        action="store_true",
+        default=False,
+        help="Use CosyVoice to synthesis audio")
+    parser.add_argument(
+        "--tts_prompt_audio",
+        type=str,
+        default=None,
+        help="Path to the tts prompt audio file, e.g. wav, mp3. Must be greater than 16khz, and between 5s to 15s.")
+    parser.add_argument(
+        "--tts_prompt_text",
+        type=str,
+        default=None,
+        help="Content to the tts prompt audio. If provided, must exactly match tts_prompt_audio")
+    parser.add_argument(
+        "--tts_text",
+        type=str,
+        default=None,
+        help="Text wish to synthesize")
     parser.add_argument(
         "--pose_video",
         type=str,
@@ -412,6 +442,10 @@ def generate(args):
             input_prompt=args.prompt,
             ref_image_path=args.image,
             audio_path=args.audio,
+            enable_tts=args.enable_tts,
+            tts_prompt_audio=args.tts_prompt_audio,
+            tts_prompt_text=args.tts_prompt_text,
+            tts_text=args.tts_text,
             num_repeat=args.num_clip,
             pose_video=args.pose_video,
             max_area=MAX_AREA_CONFIGS[args.size],
@@ -469,7 +503,10 @@ def generate(args):
             normalize=True,
             value_range=(-1, 1))
         if "s2v" in args.task:
-            merge_video_audio(video_path=args.save_file, audio_path=args.audio)
+            if args.enable_tts is False:
+                merge_video_audio(video_path=args.save_file, audio_path=args.audio)
+            else:
+                merge_video_audio(video_path=args.save_file, audio_path="tts.wav")
     del video
 
     torch.cuda.synchronize()
