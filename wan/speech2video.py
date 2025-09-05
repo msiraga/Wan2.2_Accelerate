@@ -394,6 +394,10 @@ class WanS2V:
         input_prompt,
         ref_image_path,
         audio_path,
+        enable_tts,
+        tts_prompt_audio,
+        tts_prompt_text,
+        tts_text,
         num_repeat=1,
         pose_video=None,
         max_area=720 * 1280,
@@ -478,6 +482,8 @@ class WanS2V:
                 device=self.device)
 
         # extract audio emb
+        if enable_tts is True:
+            audio_path = self.tts(tts_prompt_audio, tts_prompt_text, tts_text)
         audio_emb, nr = self.encode_audio(audio_path, infer_frames=infer_frames)
         if num_repeat is None or num_repeat > nr:
             num_repeat = nr
@@ -671,3 +677,31 @@ class WanS2V:
             dist.barrier()
 
         return videos[0] if self.rank == 0 else None
+
+    def tts(self, tts_prompt_audio, tts_prompt_text, tts_text):
+        if not hasattr(self, 'cosyvoice'):
+            self.load_tts()
+        speech_list = []
+        from cosyvoice.utils.file_utils import load_wav
+        import torchaudio
+        prompt_speech_16k = load_wav(tts_prompt_audio, 16000)
+        if tts_prompt_text is not None:
+            for i in self.cosyvoice.inference_zero_shot(tts_text, tts_prompt_text, prompt_speech_16k):
+                speech_list.append(i['tts_speech'])
+        else:
+            for i in self.cosyvoice.inference_cross_lingual(tts_text, prompt_speech_16k):
+                speech_list.append(i['tts_speech'])
+        torchaudio.save('tts.wav', torch.concat(speech_list, dim=1), self.cosyvoice.sample_rate)
+        return 'tts.wav'
+
+    def load_tts(self):
+        if not os.path.exists('CosyVoice'):
+            from wan.utils.utils import download_cosyvoice_repo
+            download_cosyvoice_repo('CosyVoice')
+        if not os.path.exists('CosyVoice2-0.5B'):
+            from wan.utils.utils import download_cosyvoice_model
+            download_cosyvoice_model('CosyVoice2-0.5B', 'CosyVoice2-0.5B')
+        sys.path.append('CosyVoice')
+        sys.path.append('CosyVoice/third_party/Matcha-TTS')
+        from cosyvoice.cli.cosyvoice import CosyVoice2
+        self.cosyvoice = CosyVoice2('CosyVoice2-0.5B')
