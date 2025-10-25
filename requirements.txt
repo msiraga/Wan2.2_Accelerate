@@ -1,16 +1,31 @@
+# Core PyTorch (MUST be installed first)
 torch>=2.4.0
 torchvision>=0.19.0
-torchaudio
-opencv-python>=4.9.0.80
+numpy>=1.23.5,<2
+
+# Diffusion & Transformers (required)
 diffusers>=0.31.0
 transformers>=4.49.0,<=4.51.3
 tokenizers>=0.20.3
 accelerate>=1.1.1
-tqdm
+
+# Flash Attention (critical for optimization)
+# NOTE: Requires torch to be installed first! See INSTALL_INSTRUCTIONS.md
+# If installation fails, install manually: pip install flash-attn --no-build-isolation
+flash-attn
+
+# Image & Video Processing (required for T2V)
 imageio[ffmpeg]
-easydict
+pillow>=9.0.0
+einops
+
+# Text Processing (required)
 ftfy
-dashscope
-imageio-ffmpeg
-flash_attn
-numpy>=1.23.5,<2
+regex
+
+# Utilities (required)
+easydict
+tqdm
+
+# Model Loading (required)
+safetensors>=0.4.0

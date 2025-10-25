@@ -22,6 +22,9 @@ cd /workspace
 git clone https://github.com/Wan-Video/Wan2.2.git
 cd Wan2.2
 
+# Install PyTorch (let it auto-detect CUDA for H200)
+pip install torch>=2.4.0 torchvision
+
 # Install dependencies
 pip install -r requirements.txt
 pip install flash_attn --no-build-isolation

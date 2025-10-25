@@ -1,7 +1,265 @@
-__pycache__/
-.DS_Store
-.vscode*
-tmp_examples*
+# ===================================================================
+# .gitignore for Wan 2.2 T2V Optimized Project
+# ===================================================================
+
+# ===== Model Checkpoints (LARGE FILES - NEVER COMMIT) =====
+checkpoints/
+*.pth
+*.safetensors
+*.ckpt
+*.bin
 new_checkpoint*
-batch_test*
+Wan2.2-*/
+wan_checkpoints/
+models/checkpoints/
+
+# ===== Generated Videos & Outputs =====
+# Video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+*.gif
+
+# Specific output patterns
+t2v_opt_*.mp4
+video*.mp4
+output*.mp4
+generated_videos/
+outputs/
+
+# ===== Python =====
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+.venv*/
+.venv311/
+.venv312/
+.venv313/
+venv/
+venv*/
+venv311/
+ENV/
+env/
+.Python
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# ===== PyTorch & CUDA =====
+.cache/
+torch_extensions/
+*.pt
+*.cuda
+*.cudnn
+
+# Pip cache
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ===== Testing & Benchmarking =====
+benchmark_results*.txt
+test_output/
+test_results/
+*.log
 nohup*
+tmp_examples*/
+batch_test*/
+.pytest_cache/
+.tox/
+.coverage
+htmlcov/
+.hypothesis/
+
+# ===== IDEs & Editors =====
+# VSCode / Cursor
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*~
+*.swp
+*.swo
+.*.sw?
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# JupyterLab
+.jupyter/
+.ipynb_checkpoints/
+*.ipynb
+
+# ===== OS Files =====
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===== Cloud & Deployment =====
+# RunPod / Cloud specific
+.runpod/
+*.runpod
+*.pod
+
+# SSH keys (IMPORTANT - never commit)
+*.pem
+*.key
+id_rsa*
+*.ppk
+
+# ===== Environment & Config =====
+.env
+.env.*
+*.env
+.envrc
+config.local.*
+
+# ===== Logs & Temporary Files =====
+logs/
+*.log
+log/
+*.tmp
+*.temp
+temp/
+tmp/
+
+# ===== Hugging Face Cache =====
+.huggingface/
+huggingface_cache/
+
+# ===== Git =====
+*.orig
+*.rej
+*.patch
+
+# ===== Misc =====
+# Profiling data
+*.prof
+*.lprof
+
+# Compiled translations
+*.mo
+
+# Django stuff (if applicable)
+*.pot
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff (if applicable)
+instance/
+.webassets-cache
+
+# Scrapy stuff (if applicable)
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# ===== Keep These Files (Exceptions) =====
+# Documentation
+!README*.md
+!*.md
+
+# Test files we want to keep
+!test_quick.py
+!test_with_checkpoint.py
+!tests/test_optimized_t2v.py
+!tests/__init__.py
+
+# Scripts we want to keep
+!run_tests.sh
+!generate_optimized.py
+!benchmark_t2v.py
+!example_optimized_usage.py
+
+# Config files we want to keep
+!requirements.txt
+!requirements_optional.txt
+!.gitignore
+
+# ===== Project Specific =====
+# Keep the optimized implementations
+!wan/text2video_optimized.py
+
+# Ignore any local experiment scripts
+experiment_*.py
+test_*.mp4
+debug_*.py
+scratch_*.py
+

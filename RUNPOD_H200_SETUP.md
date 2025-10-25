@@ -94,8 +94,17 @@ python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA: {
 
 **If PyTorch is missing or old:**
 ```bash
+# Option 1: Auto-detect CUDA (recommended for RunPod)
+pip install torch>=2.4.0 torchvision torchaudio
+
+# Option 2: Explicit CUDA 12.4 (H200 optimized)
+pip install torch>=2.4.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+
+# Option 3: CUDA 12.1 (most stable)
 pip install torch>=2.4.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
+
+**Note:** H200 supports CUDA 11.8+ but 12.1+ recommended for best performance.
 
 ---
 
