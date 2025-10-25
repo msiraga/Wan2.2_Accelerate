@@ -115,7 +115,6 @@ def main():
             frame_num=frame_num,
             sampling_steps=steps,
             guide_scale=(3.0, 4.0),
-            use_batched_cfg=True,
             offload_model=True,
             seed=42
         )
@@ -167,12 +166,12 @@ def main():
         print(f"✗ FAIL: {e}\n")
         sys.exit(1)
     
-    # Test batched CFG actually used
-    print("Test 5: Batched CFG Validation")
+    # Test generation consistency
+    print("Test 5: Generation Consistency Check")
     print("-" * 50)
     try:
-        # Generate with and without batched CFG
-        print("Testing batched CFG=True...")
+        # Run generation twice to verify consistency
+        print("Testing first run...")
         torch.cuda.reset_peak_memory_stats()
         start = time.time()
         
@@ -181,40 +180,40 @@ def main():
             size=(1280, 720),
             frame_num=5,
             sampling_steps=2,
-            use_batched_cfg=True,
             offload_model=True,
             seed=42
         )
         
-        time_batched = time.time() - start
-        mem_batched = torch.cuda.max_memory_allocated() / 1024**3
+        time_standard = time.time() - start
+        mem_standard = torch.cuda.max_memory_allocated() / 1024**3
         
-        print(f"✓ Batched: {time_batched:.1f}s, {mem_batched:.1f} GB")
+        print(f"✓ First run: {time_standard:.1f}s, {mem_standard:.1f} GB")
         
-        print("Testing batched CFG=False...")
+        print("Testing second run...")
         torch.cuda.reset_peak_memory_stats()
         start = time.time()
         
+        # Second run to verify consistency
         _ = pipeline.generate(
             input_prompt="test",
             size=(1280, 720),
             frame_num=5,
             sampling_steps=2,
-            use_batched_cfg=False,
             offload_model=True,
             seed=42
         )
         
-        time_unbatched = time.time() - start
-        mem_unbatched = torch.cuda.max_memory_allocated() / 1024**3
+        time_second = time.time() - start
+        mem_second = torch.cuda.max_memory_allocated() / 1024**3
         
-        print(f"✓ Unbatched: {time_unbatched:.1f}s, {mem_unbatched:.1f} GB")
+        print(f"✓ Second run: {time_second:.1f}s, {mem_second:.1f} GB")
         
-        if time_unbatched > time_batched * 1.3:
-            speedup = time_unbatched / time_batched
-            print(f"✓ Batched CFG is {speedup:.2f}x faster!")
+        # Check consistency between runs
+        time_diff_pct = abs(time_second - time_standard) / time_standard * 100
+        if time_diff_pct < 10:
+            print(f"✓ Consistent performance across runs ({time_diff_pct:.1f}% variation)")
         else:
-            print(f"⚠ Note: Speedup not significant in this quick test")
+            print(f"⚠ Note: Performance variation {time_diff_pct:.1f}% (expected in quick tests)")
         
         print("PASS ✓\n")
     except Exception as e:

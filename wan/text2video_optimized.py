@@ -242,8 +242,7 @@ class WanT2VOptimized:
                  guide_scale=5.0,
                  n_prompt="",
                  seed=-1,
-                 offload_model=True,
-                 use_batched_cfg=True):
+                 offload_model=True):
         r"""
         Generates video frames from text prompt using optimized diffusion process.
 
@@ -269,9 +268,6 @@ class WanT2VOptimized:
             offload_model (`bool`, *optional*, defaults to True):
                 If True, offloads models to CPU during generation to save VRAM.
                 Set to False for maximum speed if you have enough VRAM (~80GB).
-            use_batched_cfg (`bool`, *optional*, defaults to True):
-                If True, batch unconditional and conditional in single forward pass.
-                This provides ~1.8x speedup.
 
         Returns:
             torch.Tensor:
@@ -361,76 +357,38 @@ class WanT2VOptimized:
             # sample videos
             latents = noise
 
-            # ==== OPTIMIZATION 4: Batched CFG ====
-            if use_batched_cfg:
-                logging.info("Using batched CFG for ~1.8x speedup")
-                for _, t in enumerate(tqdm(timesteps)):
-                    latent_model_input = latents
-                    timestep = [t]
-                    timestep = torch.stack(timestep)
+            # Standard CFG with 2 forward passes
+            # Note: Batched CFG is not compatible with this model architecture
+            # as it expects inputs without batch dimension
+            logging.info("Using standard CFG (2 forward passes)")
+            arg_c = {'context': context, 'seq_len': seq_len}
+            arg_null = {'context': context_null, 'seq_len': seq_len}
 
-                    model = self._prepare_model_for_timestep(
-                        t, boundary, offload_model)
-                    sample_guide_scale = guide_scale[1] if t.item(
-                    ) >= boundary else guide_scale[0]
+            for _, t in enumerate(tqdm(timesteps)):
+                latent_model_input = latents
+                timestep = [t]
+                timestep = torch.stack(timestep)
 
-                    # Batch unconditional + conditional for single forward pass
-                    # Stack latents: [uncond, cond]
-                    latent_batched = [torch.cat([x, x], dim=0) for x in latent_model_input]
-                    # Combine contexts: [uncond, cond]
-                    context_batched = [torch.cat([u, c], dim=0) for u, c in zip(context_null, context)]
-                    
-                    # Single forward pass
-                    noise_pred_batched = self._model_forward(
-                        model, latent_batched, t=timestep, 
-                        context=context_batched, seq_len=seq_len
-                    )[0]
-                    
-                    # Split results
-                    noise_pred_uncond, noise_pred_cond = noise_pred_batched.chunk(2, dim=0)
+                model = self._prepare_model_for_timestep(
+                    t, boundary, offload_model)
+                sample_guide_scale = guide_scale[1] if t.item(
+                ) >= boundary else guide_scale[0]
 
-                    # Apply CFG
-                    noise_pred = noise_pred_uncond + sample_guide_scale * (
-                        noise_pred_cond - noise_pred_uncond)
+                noise_pred_cond = self._model_forward(
+                    model, latent_model_input, t=timestep, **arg_c)[0]
+                noise_pred_uncond = self._model_forward(
+                    model, latent_model_input, t=timestep, **arg_null)[0]
 
-                    temp_x0 = sample_scheduler.step(
-                        noise_pred.unsqueeze(0),
-                        t,
-                        latents[0].unsqueeze(0),
-                        return_dict=False,
-                        generator=seed_g)[0]
-                    latents = [temp_x0.squeeze(0)]
-            else:
-                # Original implementation (2 forward passes)
-                logging.info("Using standard CFG (2 forward passes)")
-                arg_c = {'context': context, 'seq_len': seq_len}
-                arg_null = {'context': context_null, 'seq_len': seq_len}
+                noise_pred = noise_pred_uncond + sample_guide_scale * (
+                    noise_pred_cond - noise_pred_uncond)
 
-                for _, t in enumerate(tqdm(timesteps)):
-                    latent_model_input = latents
-                    timestep = [t]
-                    timestep = torch.stack(timestep)
-
-                    model = self._prepare_model_for_timestep(
-                        t, boundary, offload_model)
-                    sample_guide_scale = guide_scale[1] if t.item(
-                    ) >= boundary else guide_scale[0]
-
-                    noise_pred_cond = self._model_forward(
-                        model, latent_model_input, t=timestep, **arg_c)[0]
-                    noise_pred_uncond = self._model_forward(
-                        model, latent_model_input, t=timestep, **arg_null)[0]
-
-                    noise_pred = noise_pred_uncond + sample_guide_scale * (
-                        noise_pred_cond - noise_pred_uncond)
-
-                    temp_x0 = sample_scheduler.step(
-                        noise_pred.unsqueeze(0),
-                        t,
-                        latents[0].unsqueeze(0),
-                        return_dict=False,
-                        generator=seed_g)[0]
-                    latents = [temp_x0.squeeze(0)]
+                temp_x0 = sample_scheduler.step(
+                    noise_pred.unsqueeze(0),
+                    t,
+                    latents[0].unsqueeze(0),
+                    return_dict=False,
+                    generator=seed_g)[0]
+                latents = [temp_x0.squeeze(0)]
 
             x0 = latents
             if offload_model:
