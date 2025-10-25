@@ -12,7 +12,7 @@ accelerate>=1.1.1
 # Flash Attention (critical for optimization)
 # NOTE: Requires torch to be installed first! See INSTALL_INSTRUCTIONS.md
 # If installation fails, install manually: pip install flash-attn --no-build-isolation
-flash-attn
+#flash-attn
 
 # Image & Video Processing (required for T2V)
 imageio[ffmpeg]
@@ -29,3 +29,6 @@ tqdm
 
 # Model Loading (required)
 safetensors>=0.4.0
+
+#decord is required for video reading in s2v. 
+decord

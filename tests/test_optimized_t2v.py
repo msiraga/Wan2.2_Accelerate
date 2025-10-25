@@ -185,6 +185,9 @@ class TestGenerateScript:
         )
         module = importlib.util.module_from_spec(spec)
         
+        # Execute the module to load its contents
+        spec.loader.exec_module(module)
+        
         # Check key functions exist
         assert hasattr(module, 'main'), "main() function not found"
     
