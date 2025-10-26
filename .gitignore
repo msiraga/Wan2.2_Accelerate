@@ -69,6 +69,10 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Wheel files (large packages)
+*.whl
+*.whl.*
+
 # PyInstaller
 *.manifest
 *.spec
