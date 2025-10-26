@@ -610,8 +610,22 @@ def _video_vae(pretrained_path=None, z_dim=None, device='cpu', **kwargs):
 
     # load checkpoint
     logging.info(f'loading {pretrained_path}')
-    model.load_state_dict(
-        torch.load(pretrained_path, map_location=device), assign=True)
+    
+    # Try loading directly to target device (faster on high-VRAM GPUs like H200)
+    # Fall back to CPU loading if OOM occurs
+    try:
+        model.load_state_dict(
+            torch.load(pretrained_path, map_location=device), assign=True)
+        logging.info(f'✓ Loaded VAE checkpoint directly to {device}')
+    except RuntimeError as e:
+        if 'out of memory' in str(e).lower():
+            logging.warning(f'GPU OOM during VAE load, falling back to CPU: {e}')
+            torch.cuda.empty_cache()
+            model.load_state_dict(
+                torch.load(pretrained_path, map_location='cpu'), assign=True)
+            logging.info('✓ Loaded VAE checkpoint to CPU (will move to GPU)')
+        else:
+            raise
 
     return model
 

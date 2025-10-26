@@ -515,8 +515,22 @@ class CLIPModel:
             device=device)
         self.model = self.model.eval().requires_grad_(False)
         logging.info(f'loading {checkpoint_path}')
-        self.model.load_state_dict(
-            torch.load(checkpoint_path, map_location='cpu'))
+        
+        # Try loading directly to target device (faster on high-VRAM GPUs like H200)
+        # Fall back to CPU loading if OOM occurs
+        try:
+            self.model.load_state_dict(
+                torch.load(checkpoint_path, map_location=self.device))
+            logging.info(f'✓ Loaded checkpoint directly to {self.device}')
+        except RuntimeError as e:
+            if 'out of memory' in str(e).lower():
+                logging.warning(f'GPU OOM during load, falling back to CPU: {e}')
+                torch.cuda.empty_cache()
+                self.model.load_state_dict(
+                    torch.load(checkpoint_path, map_location='cpu'))
+                logging.info('✓ Loaded checkpoint to CPU (will move to GPU)')
+            else:
+                raise
 
         # init tokenizer
         self.tokenizer = HuggingfaceTokenizer(

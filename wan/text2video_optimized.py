@@ -110,10 +110,12 @@ class WanT2VOptimized:
             self.init_on_cpu = False
 
         shard_fn = partial(shard_model, device_id=device_id)
+        # Use GPU for T5 if t5_cpu is False (better performance on high-VRAM GPUs)
+        t5_device = torch.device('cpu') if t5_cpu else self.device
         self.text_encoder = T5EncoderModel(
             text_len=config.text_len,
             dtype=config.t5_dtype,
-            device=torch.device('cpu'),
+            device=t5_device,
             checkpoint_path=os.path.join(checkpoint_dir, config.t5_checkpoint),
             tokenizer_path=os.path.join(checkpoint_dir, config.t5_tokenizer),
             shard_fn=shard_fn if t5_fsdp else None)
@@ -125,8 +127,24 @@ class WanT2VOptimized:
             device=self.device)
 
         logging.info(f"Creating WanModel from {checkpoint_dir}")
-        self.low_noise_model = WanModel.from_pretrained(
-            checkpoint_dir, subfolder=config.low_noise_checkpoint)
+        
+        # Try loading directly to GPU (faster on high-VRAM GPUs like H200)
+        # Fall back to CPU loading if OOM occurs
+        try:
+            self.low_noise_model = WanModel.from_pretrained(
+                checkpoint_dir, subfolder=config.low_noise_checkpoint, 
+                device_map=self.device)
+            logging.info(f"✓ Loaded low_noise_model directly to {self.device}")
+        except RuntimeError as e:
+            if 'out of memory' in str(e).lower():
+                logging.warning(f"GPU OOM loading low_noise_model, falling back to CPU: {e}")
+                torch.cuda.empty_cache()
+                self.low_noise_model = WanModel.from_pretrained(
+                    checkpoint_dir, subfolder=config.low_noise_checkpoint)
+                logging.info("✓ Loaded low_noise_model to CPU (will move to GPU)")
+            else:
+                raise
+        
         self.low_noise_model = self._configure_model(
             model=self.low_noise_model,
             use_sp=use_sp,
@@ -135,8 +153,21 @@ class WanT2VOptimized:
             convert_model_dtype=convert_model_dtype,
             model_name="low_noise")
 
-        self.high_noise_model = WanModel.from_pretrained(
-            checkpoint_dir, subfolder=config.high_noise_checkpoint)
+        try:
+            self.high_noise_model = WanModel.from_pretrained(
+                checkpoint_dir, subfolder=config.high_noise_checkpoint,
+                device_map=self.device)
+            logging.info(f"✓ Loaded high_noise_model directly to {self.device}")
+        except RuntimeError as e:
+            if 'out of memory' in str(e).lower():
+                logging.warning(f"GPU OOM loading high_noise_model, falling back to CPU: {e}")
+                torch.cuda.empty_cache()
+                self.high_noise_model = WanModel.from_pretrained(
+                    checkpoint_dir, subfolder=config.high_noise_checkpoint)
+                logging.info("✓ Loaded high_noise_model to CPU (will move to GPU)")
+            else:
+                raise
+        
         self.high_noise_model = self._configure_model(
             model=self.high_noise_model,
             use_sp=use_sp,
