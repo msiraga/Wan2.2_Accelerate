@@ -264,7 +264,6 @@ class TestWithCheckpoint:
             size=(1280, 720),
             frame_num=5,  # Very short
             sampling_steps=2,  # Very few steps
-            use_batched_cfg=True,
             offload_model=True,
             seed=42
         )

@@ -43,7 +43,6 @@ def example_basic_usage():
         sampling_steps=40,
         guide_scale=(3.0, 4.0),
         seed=42,
-        use_batched_cfg=True,     # Batched CFG for 1.8x speedup
         offload_model=False,      # Keep models on GPU (requires 80GB)
     )
     
@@ -81,7 +80,6 @@ def example_memory_constrained():
         size=(960, 544),          # Smaller resolution
         frame_num=49,             # Fewer frames
         sampling_steps=40,
-        use_batched_cfg=True,     # Still use batched CFG
         offload_model=True,       # Offload models to CPU
     )
     
@@ -127,7 +125,6 @@ def example_maximum_performance():
         size=(1280, 720),
         frame_num=81,
         sampling_steps=40,
-        use_batched_cfg=True,
         offload_model=False,
     )
     
@@ -147,7 +144,6 @@ def example_maximum_performance():
         sampling_steps=40,
         guide_scale=(3.0, 4.0),
         seed=42,
-        use_batched_cfg=True,
         offload_model=False,
     )
     
@@ -229,7 +225,6 @@ def example_compare_original_vs_optimized():
         frame_num=81,
         sampling_steps=40,
         seed=42,
-        use_batched_cfg=True,
         offload_model=False,
     )
     
@@ -243,7 +238,6 @@ def example_compare_original_vs_optimized():
         frame_num=81,
         sampling_steps=40,
         seed=42,
-        use_batched_cfg=True,
         offload_model=False,
     )
     
@@ -287,7 +281,6 @@ def example_custom_optimization_levels():
     
     video_l1 = pipeline_l1.generate(
         input_prompt="A cat",
-        use_batched_cfg=True,
         offload_model=True,
     )
     print("✓ Expected: ~1.8x speedup\n")
@@ -303,7 +296,6 @@ def example_custom_optimization_levels():
     
     video_l2 = pipeline_l2.generate(
         input_prompt="A cat",
-        use_batched_cfg=True,
         offload_model=True,
     )
     print("✓ Expected: ~2.3x speedup\n")
@@ -320,7 +312,6 @@ def example_custom_optimization_levels():
     
     video_l3 = pipeline_l3.generate(
         input_prompt="A cat",
-        use_batched_cfg=True,
         offload_model=False,
     )
     print("✓ Expected: ~3.3x speedup\n")

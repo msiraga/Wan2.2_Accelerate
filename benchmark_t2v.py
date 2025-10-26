@@ -151,8 +151,7 @@ def run_benchmark(args):
                 sampling_steps=args.steps,
                 guide_scale=args.guide_scale,
                 seed=args.seed,
-                offload_model=args.offload_model,
-                use_batched_cfg=args.batched_cfg
+                offload_model=args.offload_model
             )
         
         # Benchmark runs
@@ -167,8 +166,7 @@ def run_benchmark(args):
                 sampling_steps=args.steps,
                 guide_scale=args.guide_scale,
                 seed=args.seed,
-                offload_model=args.offload_model,
-                use_batched_cfg=args.batched_cfg
+                offload_model=args.offload_model
             )
             times.append(elapsed)
             memories.append(peak_mem)
@@ -219,8 +217,6 @@ def run_benchmark(args):
         
         # Optimization breakdown
         logging.info(f"\nOptimizations Applied:")
-        if args.batched_cfg:
-            logging.info(f"  ✓ Batched CFG")
         if args.tf32:
             logging.info(f"  ✓ TF32 matmul")
         if args.compile:
@@ -284,8 +280,8 @@ if __name__ == "__main__":
                        help="Sampling steps")
     parser.add_argument("--shift", type=float, default=12.0,
                        help="Sampling shift")
-    parser.add_argument("--guide_scale", type=float, default=None,
-                       help="CFG scale (use config default if not specified)")
+    parser.add_argument("--guide_scale", type=float, default=5.0,
+                       help="CFG scale (default: 5.0)")
     parser.add_argument("--solver", type=str, default="unipc",
                        choices=["unipc", "dpm++"],
                        help="Sampling solver")
@@ -312,10 +308,6 @@ if __name__ == "__main__":
                        help="Enable TF32")
     parser.add_argument("--no-tf32", dest="tf32", action="store_false",
                        help="Disable TF32")
-    parser.add_argument("--batched_cfg", action="store_true", default=True,
-                       help="Use batched CFG")
-    parser.add_argument("--no-batched_cfg", dest="batched_cfg", action="store_false",
-                       help="Disable batched CFG")
     
     # Benchmark config
     parser.add_argument("--num_runs", type=int, default=3,

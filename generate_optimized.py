@@ -102,11 +102,6 @@ def main():
     parser.add_argument("--no-tf32", dest="tf32", action="store_false",
                        help="Disable TF32")
     
-    parser.add_argument("--batched_cfg", type=str2bool, default=True,
-                       help="Use batched CFG for 1.8x speedup (default: True)")
-    parser.add_argument("--no-batched_cfg", dest="batched_cfg", 
-                       action="store_false",
-                       help="Disable batched CFG")
     
     # Distributed (not commonly used for single generation)
     parser.add_argument("--ulysses_size", type=int, default=1,
@@ -171,7 +166,6 @@ def main():
     logging.info("\nOptimizations:")
     logging.info(f"  TF32: {'✓' if args.tf32 else '✗'}")
     logging.info(f"  torch.compile: {'✓' if args.compile else '✗'} (mode={args.compile_mode})")
-    logging.info(f"  Batched CFG: {'✓' if args.batched_cfg else '✗'}")
     logging.info(f"  Model offloading: {'✓' if args.offload_model else '✗'}")
     logging.info(f"  T5 on CPU: {'✓' if args.t5_cpu else '✗'}")
     logging.info("=" * 80 + "\n")
@@ -212,8 +206,7 @@ def main():
         guide_scale=args.sample_guide_scale,
         n_prompt=args.n_prompt,
         seed=args.seed,
-        offload_model=args.offload_model,
-        use_batched_cfg=args.batched_cfg
+        offload_model=args.offload_model
     )
     
     torch.cuda.synchronize()
