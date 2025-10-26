@@ -9,9 +9,10 @@ transformers>=4.49.0,<=4.51.3
 tokenizers>=0.20.3
 accelerate>=1.1.1
 
-# Flash Attention (critical for optimization)
+# Flash Attention 3 (critical for optimization on H100/H200 GPUs)
 # NOTE: Requires torch to be installed first! See INSTALL_INSTRUCTIONS.md
-# If installation fails, install manually: pip install flash-attn --no-build-isolation
+# For H100/H200 (Hopper architecture), install from hopper directory for FA3 support
+# Install manually: see commands below
 #flash-attn
 
 # Image & Video Processing (required for T2V)
@@ -34,3 +35,5 @@ safetensors>=0.4.0
 decord
 
 easydict
+
+#cd /tmp && git clone https://github.com/Dao-AILab/flash-attention.git && cd flash-attention/hopper && pip install -e . --no-build-isolation

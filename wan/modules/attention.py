@@ -5,7 +5,10 @@ try:
     import flash_attn_interface
     FLASH_ATTN_3_AVAILABLE = True
 except ModuleNotFoundError:
+    # For flash-attn 2.x that includes flash_attn_interface but not full FA3 support
+    # We disable FA3 to use the stable FA2 code path
     FLASH_ATTN_3_AVAILABLE = False
+    flash_attn_interface = None
 
 try:
     import flash_attn

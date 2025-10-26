@@ -123,7 +123,7 @@ def run_benchmark(args):
     
     if args.mode in ["optimized", "both"]:
         logging.info("\n" + "=" * 80)
-        logging.info("BENCHMARKING OPTIMIZED IMPLEMENTATION")
+        logging.info("BENCHMARKING OPTIMIZED IMPLEMENTATION (LEVEL 1)")
         logging.info("=" * 80)
         
         from wan.text2video_optimized import WanT2VOptimized
@@ -289,18 +289,22 @@ if __name__ == "__main__":
                        help="Random seed")
     
     # Model config
-    parser.add_argument("--offload_model", action="store_true", default=False,
-                       help="Offload models to CPU (slower but uses less VRAM)")
+    parser.add_argument("--offload_model", action="store_true", default=True,
+                       help="Offload models to CPU (recommended, matches original repo)")
+    parser.add_argument("--no-offload", dest="offload_model", action="store_false",
+                       help="Keep all models on GPU (requires 200GB+ VRAM)")
     parser.add_argument("--t5_cpu", action="store_true", default=False,
                        help="Keep T5 on CPU")
-    parser.add_argument("--convert_dtype", action="store_true", default=False,
-                       help="Convert model dtype")
+    parser.add_argument("--convert_dtype", action="store_true", default=True,
+                       help="Convert model dtype to bfloat16 (recommended for H100/H200)")
+    parser.add_argument("--no-convert-dtype", dest="convert_dtype", action="store_false",
+                       help="Keep model in float32 (slower)")
     
     # Optimization flags
-    parser.add_argument("--compile", action="store_true", default=True,
-                       help="Enable torch.compile")
+    parser.add_argument("--compile", action="store_true", default=False,
+                       help="Enable torch.compile (experimental, incompatible with offload)")
     parser.add_argument("--no-compile", dest="compile", action="store_false",
-                       help="Disable torch.compile")
+                       help="Disable torch.compile (default)")
     parser.add_argument("--compile_mode", type=str, default="reduce-overhead",
                        choices=["default", "reduce-overhead", "max-autotune"],
                        help="torch.compile mode")
